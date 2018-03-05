@@ -44,8 +44,9 @@ using namespace std;
 #include "SD_MMC.h"
 #include "Buffer.h"
 
-esp_err_t event_handler(void* ctx, system_event_t* event) {
-  return ESP_OK;
+void event_handler(void* arg, esp_event_base_t event_base,
+                   int32_t event_id, void* event_data) {
+  // Handle events here
 }
 
 /* ===== run-time variables ===== */
@@ -155,12 +156,12 @@ void draw() {
   display.drawString( 14, 0, ("|"));
   display.drawString( 30, 0, (String)rssi);
   display.drawString( 34, 0, ("|"));
-  display.drawString( 80, 0, (String)tmpPacketCounter);
-  display.drawString( 84, 0, ("["));
-  display.drawString(100, 0, (String)deauths);
-  display.drawString(104, 0, ("]"));
-  display.drawString(108, 0, ("|"));
-  display.drawString(126, 0, (useSD ? "SD" : ""));
+  display.drawString( 82, 0, (String)tmpPacketCounter);
+  display.drawString( 87, 0, ("["));
+  display.drawString(106, 0, (String)deauths);
+  display.drawString(110, 0, ("]"));
+  display.drawString(114, 0, ("|"));
+  display.drawString(128, 0, (useSD ? "SD" : ""));
   display.setTextAlignment(TEXT_ALIGN_LEFT);
   display.drawString( 36,  0, ("Pkts:"));
 
@@ -187,9 +188,14 @@ void setup() {
 
   // System & WiFi
   nvs_flash_init();
-  tcpip_adapter_init();
+ESP_ERROR_CHECK(esp_netif_init());
   wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-  ESP_ERROR_CHECK(esp_event_loop_init(event_handler, NULL));
+ESP_ERROR_CHECK(esp_event_loop_create_default());
+ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT,
+                                                    ESP_EVENT_ANY_ID,
+                                                    &event_handler,
+                                                    NULL,
+                                                    NULL));
   ESP_ERROR_CHECK(esp_wifi_init(&cfg));
   //ESP_ERROR_CHECK(esp_wifi_set_country(WIFI_COUNTRY_EU));
   ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
